@@ -1,6 +1,5 @@
 package bomberman.map;
 
-import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -75,7 +74,7 @@ public class File extends Level {
 
         switch(c) { // TODO: minimize this method
             case '#':
-                _board.addEntitie(pos, new Wall(x, y, Sprite.wall));
+                _board.addEntity(pos, new Wall(x, y, Sprite.wall));
                 break;
             case 'b':
                 HiddenEntity layer = new HiddenEntity(x, y,
@@ -86,7 +85,7 @@ public class File extends Level {
                     layer.addBeforeTop(new BombBonus(x, y, _level, Sprite.powerup_bombs));
                 }
 
-                _board.addEntitie(pos, layer);
+                _board.addEntity(pos, layer);
                 break;
             case 's':
                 layer = new HiddenEntity(x, y,
@@ -97,7 +96,7 @@ public class File extends Level {
                     layer.addBeforeTop(new SpeedBonus(x, y, _level, Sprite.powerup_speed));
                 }
 
-                _board.addEntitie(pos, layer);
+                _board.addEntity(pos, layer);
                 break;
             case 'f':
                 layer = new HiddenEntity(x, y,
@@ -108,51 +107,51 @@ public class File extends Level {
                     layer.addBeforeTop(new RadiusBonus(x, y, _level, Sprite.powerup_flames));
                 }
 
-                _board.addEntitie(pos, layer);
+                _board.addEntity(pos, layer);
                 break;
             case '*':
-                _board.addEntitie(pos, new HiddenEntity(x, y,
+                _board.addEntity(pos, new HiddenEntity(x, y,
                         new Grass(x ,y, Sprite.grass),
                         new Obstacle(x ,y, Sprite.brick)) );
                 break;
             case 'x':
-                _board.addEntitie(pos, new HiddenEntity(x, y,
+                _board.addEntity(pos, new HiddenEntity(x, y,
                         new Grass(x ,y, Sprite.grass),
                         new Gate(x ,y, _board, Sprite.portal),
                         new Obstacle(x ,y, Sprite.brick)) );
                 break;
             case ' ':
-                _board.addEntitie(pos, new Grass(x, y, Sprite.grass) );
+                _board.addEntity(pos, new Grass(x, y, Sprite.grass) );
                 break;
             case 'p':
-                _board.addMob( new Player(Convert.tileToPixel(x), Convert.tileToPixel(y) + GameLoop.TILES_SIZE, _board) );
+                _board.addCharacter( new Player(Convert.tileToPixel(x), Convert.tileToPixel(y) + GameLoop.TILES_SIZE, _board) );
                 Screen.setOffset(0, 0);
 
-                _board.addEntitie(pos, new Grass(x, y, Sprite.grass) );
+                _board.addEntity(pos, new Grass(x, y, Sprite.grass) );
                 break;
             //Enemies
             case '1':
-                _board.addMob( new Balloom(Convert.tileToPixel(x), Convert.tileToPixel(y) + GameLoop.TILES_SIZE, _board));
-                _board.addEntitie(pos, new Grass(x, y, Sprite.grass) );
+                _board.addCharacter( new Balloom(Convert.tileToPixel(x), Convert.tileToPixel(y) + GameLoop.TILES_SIZE, _board));
+                _board.addEntity(pos, new Grass(x, y, Sprite.grass) );
                 break;
             case '2':
-                _board.addMob( new Oneal(Convert.tileToPixel(x), Convert.tileToPixel(y) + GameLoop.TILES_SIZE, _board));
-                _board.addEntitie(pos, new Grass(x, y, Sprite.grass) );
+                _board.addCharacter( new Oneal(Convert.tileToPixel(x), Convert.tileToPixel(y) + GameLoop.TILES_SIZE, _board));
+                _board.addEntity(pos, new Grass(x, y, Sprite.grass) );
                 break;
             case '3':
-                _board.addMob( new Doll(Convert.tileToPixel(x), Convert.tileToPixel(y) + GameLoop.TILES_SIZE, _board));
-                _board.addEntitie(pos, new Grass(x, y, Sprite.grass) );
+                _board.addCharacter( new Doll(Convert.tileToPixel(x), Convert.tileToPixel(y) + GameLoop.TILES_SIZE, _board));
+                _board.addEntity(pos, new Grass(x, y, Sprite.grass) );
                 break;
             case '4':
-                _board.addMob( new Minvo(Convert.tileToPixel(x), Convert.tileToPixel(y) + GameLoop.TILES_SIZE, _board));
-                _board.addEntitie(pos, new Grass(x, y, Sprite.grass) );
+                _board.addCharacter( new Minvo(Convert.tileToPixel(x), Convert.tileToPixel(y) + GameLoop.TILES_SIZE, _board));
+                _board.addEntity(pos, new Grass(x, y, Sprite.grass) );
                 break;
             case '5':
-                _board.addMob( new Kondoria(Convert.tileToPixel(x), Convert.tileToPixel(y) + GameLoop.TILES_SIZE, _board));
-                _board.addEntitie(pos, new Grass(x, y, Sprite.grass) );
+                _board.addCharacter( new Kondoria(Convert.tileToPixel(x), Convert.tileToPixel(y) + GameLoop.TILES_SIZE, _board));
+                _board.addEntity(pos, new Grass(x, y, Sprite.grass) );
                 break;
             default:
-                _board.addEntitie(pos, new Grass(x, y, Sprite.grass) );
+                _board.addEntity(pos, new Grass(x, y, Sprite.grass) );
                 break;
         }
     }

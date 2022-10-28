@@ -81,7 +81,7 @@ public class Bomb extends MovingEntity {
         _allowedToPassThru = true;
         _exploded = true;
 
-        Character a = _board.getMobAt(_x, _y);
+        Character a = _board.getCharacterIn(_x, _y);
         if(a != null)  {
             a.kill();
         }
