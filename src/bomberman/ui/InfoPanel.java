@@ -17,39 +17,54 @@ public class InfoPanel extends JPanel {
 
     public InfoPanel(GameLoop game) {
         setLayout(new GridLayout());
-
-        timeLabel = new JLabel("Time: " + game.getBoard().getTime());
-        timeLabel.setForeground(Color.white);
+        StringBuilder time1 = new StringBuilder();
+        int t1 = game.getBoard().getTime()/60;
+        int t2 = game.getBoard().getTime()-t1*60;
+        time1.append(t1);
+        time1.append(":");
+        if(t2<10) {
+            time1.append("0");
+        }
+        time1.append(t2);
+        timeLabel = new JLabel("Time: " + time1);
+        timeLabel.setForeground(Color.green);
         timeLabel.setHorizontalAlignment(JLabel.CENTER);
-
-        pointsLabel = new JLabel("Points: " + game.getBoard().getPoints());
-        pointsLabel.setForeground(Color.white);
-        pointsLabel.setHorizontalAlignment(JLabel.CENTER);
-
-        livesLabel = new JLabel("Lives: " + game.getBoard().getLives());
-        livesLabel.setForeground(Color.white);
-        livesLabel.setHorizontalAlignment(JLabel.CENTER);
-
         add(timeLabel);
-        add(pointsLabel);
+
+        livesLabel = new JLabel("Lives left: " + game.getBoard().getLives());
+        livesLabel.setForeground(Color.green);
+        livesLabel.setHorizontalAlignment(JLabel.CENTER);
         add(livesLabel);
 
+        pointsLabel = new JLabel("Score: " + game.getBoard().getPoints());
+        pointsLabel.setForeground(Color.green);
+        pointsLabel.setHorizontalAlignment(JLabel.CENTER);
+        add(pointsLabel);
 
-        setBackground(Color.black);
-        setPreferredSize(new Dimension(0, 40));
+        setBackground(Color.gray);
+        setPreferredSize(new Dimension(0, 25));
     }
 
     public void setTime(int t) {
-        timeLabel.setText("Time: " + t);
+        StringBuilder time = new StringBuilder();
+        int t1 = t/60;
+        int t2 = t-t1*60;
+        time.append(t1);
+        time.append(":");
+        if(t2<10) {
+            time.append("0");
+        }
+        time.append(t2);
+        timeLabel.setText("Time: " + time);
     }
 
     public void setLives(int t) {
-        livesLabel.setText("Lives: " + t);
+        livesLabel.setText("Lives left: " + t);
 
     }
 
     public void setPoints(int t) {
-        pointsLabel.setText("Points: " + t);
+        pointsLabel.setText("Score: " + t);
     }
 
 }
