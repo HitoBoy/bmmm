@@ -22,79 +22,69 @@ import bomberman.map.Level;
 
 public class Board implements Rendering {
 
-    public int _width, _height;
-    protected Level _level;
-    protected GameLoop _game;
-    protected Keyboard _input;
-    protected Screen _screen;
+    public int width, height;
+    protected Level level;
+    protected GameLoop name;
+    protected Keyboard input;
+    protected Screen screen;
 
-    public Entity[] _entities;
-    public List<Character> _mobs = new ArrayList<Character>();
-    protected List<Bomb> _bombs = new ArrayList<Bomb>();
-    private List<Text> _messages = new ArrayList<Text>();
+    public Entity[] entityList;
+    public List<Character> characterList = new ArrayList<Character>();
+    protected List<Bomb> bombList = new ArrayList<Bomb>();
+    private List<Text> textList = new ArrayList<Text>();
 
-    private int _screenToShow = -1; //1:endgame, 2:changelevel, 3:paused
+    private int diffScreen = -1;
 
-    private int _time = GameLoop.TIME;
-    private int _points = GameLoop.POINTS;
-    private int _lives = GameLoop.LIVES;
+    private int timeLeft = GameLoop.TIME;
+    private int point = GameLoop.POINTS;
+    private int lives = GameLoop.LIVES;
 
     public Board(GameLoop game, Keyboard input, Screen screen) {
-        _game = game;
-        _input = input;
-        _screen = screen;
+        name = game;
+        this.input = input;
+        this.screen = screen;
 
-        changeLevel(1); //start in level 1
+        changeLevel(1);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Render & Update
-    |--------------------------------------------------------------------------
-     */
     @Override
     public void update() {
-        if( _game.isPaused() ) return;
+        if( name.isPaused() ) return;
 
         updateEntities();
-        updateMobs();
+        updateCharacter();
         updateBombs();
         updateMessages();
         detectEndGame();
 
-        for (int i = 0; i < _mobs.size(); i++) {
-            Character a = _mobs.get(i);
-            if(((Entity)a).isRemoved()) _mobs.remove(i);
+        for (int i = 0; i < characterList.size(); i++) {
+            Character a = characterList.get(i);
+            if(((Entity)a).isRemoved()) characterList.remove(i);
         }
     }
 
 
     @Override
     public void render(Screen screen) {
-        if( _game.isPaused() ) return;
+        if( name.isPaused() ) return;
 
-        //only render the visible part of screen
-        int x0 = Screen.xOffset >> 4; //tile precision, -> left X
-        int x1 = (Screen.xOffset + screen.getWidth() + GameLoop.TILES_SIZE) / GameLoop.TILES_SIZE; // -> right X
+
+        int x0 = Screen.xOffset >> 4;
+        int x1 = (Screen.xOffset + screen.getWidth() + GameLoop.TILES_SIZE) / GameLoop.TILES_SIZE; //
         int y0 = Screen.yOffset >> 4;
-        int y1 = (Screen.yOffset + screen.getHeight()) / GameLoop.TILES_SIZE; //render one tile plus to fix black margins
+        int y1 = (Screen.yOffset + screen.getHeight()) / GameLoop.TILES_SIZE;
 
         for (int y = y0; y < y1; y++) {
             for (int x = x0; x < x1; x++) {
-                _entities[x + y * _level.getWidth()].render(screen);
+                entityList[x + y * level.getWidth()].render(screen);
             }
         }
 
         renderBombs(screen);
-        renderMobs(screen);
+        renderCharacter(screen);
 
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ChangeLevel
-    |--------------------------------------------------------------------------
-     */
     public void newGame() {
         resetProperties();
         changeLevel(1);
@@ -102,45 +92,45 @@ public class Board implements Rendering {
 
     @SuppressWarnings("static-access")
     private void resetProperties() {
-        _points = GameLoop.POINTS;
-        _lives = GameLoop.LIVES;
+        point = GameLoop.POINTS;
+        lives = GameLoop.LIVES;
         Player._powerups.clear();
+        name.bombRate = 1;
+        name.playerSpeed = 1.0;
+        name.bombRadius = 1;
 
-        _game.playerSpeed = 1.0;
-        _game.bombRadius = 1;
-        _game.bombRate = 1;
 
     }
 
     public void restartLevel() {
-        changeLevel(_level.getLevel());
+        changeLevel(level.getLevel());
     }
 
     public void nextLevel() {
-        changeLevel(_level.getLevel() + 1);
+        changeLevel(level.getLevel() + 1);
     }
 
     public void changeLevel(int level) {
-        _time = GameLoop.TIME;
-        _screenToShow = 2;
-        _game.resetScreenDelay();
-        _game.pause();
-        _mobs.clear();
-        _bombs.clear();
-        _messages.clear();
+        timeLeft = GameLoop.TIME;
+        diffScreen = 2;
+        name.resetScreenDelay();
+        name.pause();
+        characterList.clear();
+        bombList.clear();
+        textList.clear();
 
         try {
-            _level = new File("levels/Level" + level + ".txt", this);
-            _entities = new Entity[_level.getHeight() * _level.getWidth()];
+            this.level = new File("levels/Level" + level + ".txt", this);
+            entityList = new Entity[this.level.getHeight() * this.level.getWidth()];
 
-            _level.createEntities();
+            this.level.createEntities();
         } catch (LevelEx e) {
             endGame();
         }
     }
 
     public void changeLevelByCode(String str) {
-        int i = _level.validCode(str);
+        int i = level.validCode(str);
 
         if(i != -1) changeLevel(i + 1);
     }
@@ -156,65 +146,50 @@ public class Board implements Rendering {
         return false;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Detections
-    |--------------------------------------------------------------------------
-     */
     protected void detectEndGame() {
-        if(_time <= 0)
+        if(timeLeft <= 0)
             restartLevel();
     }
 
     public void endGame() {
-        _screenToShow = 1;
-        _game.resetScreenDelay();
-        _game.pause();
+        diffScreen = 1;
+        name.resetScreenDelay();
+        name.pause();
     }
 
     public boolean detectNoEnemies() {
         int total = 0;
-        for (int i = 0; i < _mobs.size(); i++) {
-            if(_mobs.get(i) instanceof Player == false)
+        for (int i = 0; i < characterList.size(); i++) {
+            if(characterList.get(i) instanceof Player == false)
                 ++total;
         }
 
         return total == 0;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Pause & Resume
-    |--------------------------------------------------------------------------
-     */
     public void gamePause() {
-        _game.resetScreenDelay();
-        if(_screenToShow <= 0)
-            _screenToShow = 3;
-        _game.pause();
+        name.resetScreenDelay();
+        if(diffScreen <= 0)
+            diffScreen = 3;
+        name.pause();
     }
 
     public void gameResume() {
-        _game.resetScreenDelay();
-        _screenToShow = -1;
-        _game.run();
+        name.resetScreenDelay();
+        diffScreen = -1;
+        name.run();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Screens
-    |--------------------------------------------------------------------------
-     */
     public void drawScreen(Graphics g) {
-        switch (_screenToShow) {
+        switch (diffScreen) {
             case 1:
-                _screen.drawEndGame(g, _points, _level.getActualCode());
+                screen.drawEndGame(g, point, level.getActualCode());
                 break;
             case 2:
-                _screen.drawChangeLevel(g, _level.getLevel());
+                screen.drawChangeLevel(g, level.getLevel());
                 break;
             case 3:
-                _screen.drawPaused(g);
+                screen.drawPaused(g);
                 break;
         }
     }
@@ -230,7 +205,7 @@ public class Board implements Rendering {
         res = getBombAt(x, y);
         if( res != null) return res;
 
-        res = getMobAtExcluding((int)x, (int)y, m);
+        res = getCharacterNotIn((int)x, (int)y, m);
         if( res != null) return res;
 
         res = getEntityAt((int)x, (int)y);
@@ -239,11 +214,11 @@ public class Board implements Rendering {
     }
 
     public List<Bomb> getBombs() {
-        return _bombs;
+        return bombList;
     }
 
     public Bomb getBombAt(double x, double y) {
-        Iterator<Bomb> bs = _bombs.iterator();
+        Iterator<Bomb> bs = bombList.iterator();
         Bomb b;
         while(bs.hasNext()) {
             b = bs.next();
@@ -254,8 +229,8 @@ public class Board implements Rendering {
         return null;
     }
 
-    public Character getMobAt(double x, double y) {
-        Iterator<Character> itr = _mobs.iterator();
+    public Character getCharacterIn(double x, double y) {
+        Iterator<Character> itr = characterList.iterator();
 
         Character cur;
         while(itr.hasNext()) {
@@ -269,7 +244,7 @@ public class Board implements Rendering {
     }
 
     public Player getPlayer() {
-        Iterator<Character> itr = _mobs.iterator();
+        Iterator<Character> itr = characterList.iterator();
 
         Character cur;
         while(itr.hasNext()) {
@@ -282,8 +257,8 @@ public class Board implements Rendering {
         return null;
     }
 
-    public Character getMobAtExcluding(int x, int y, Character a) {
-        Iterator<Character> itr = _mobs.iterator();
+    public Character getCharacterNotIn(int x, int y, Character a) {
+        Iterator<Character> itr = characterList.iterator();
 
         Character cur;
         while(itr.hasNext()) {
@@ -302,7 +277,7 @@ public class Board implements Rendering {
     }
 
     public Boom getExplosionAt(int x, int y) {
-        Iterator<Bomb> bs = _bombs.iterator();
+        Iterator<Bomb> bs = bombList.iterator();
         Bomb b;
         while(bs.hasNext()) {
             b = bs.next();
@@ -318,28 +293,23 @@ public class Board implements Rendering {
     }
 
     public Entity getEntityAt(double x, double y) {
-        return _entities[(int)x + (int)y * _level.getWidth()];
+        return entityList[(int)x + (int)y * level.getWidth()];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Adds and Removes
-    |--------------------------------------------------------------------------
-     */
-    public void addEntitie(int pos, Entity e) {
-        _entities[pos] = e;
+    public void addEntity(int pos, Entity e) {
+        entityList[pos] = e;
     }
 
-    public void addMob(Character e) {
-        _mobs.add(e);
+    public void addCharacter(Character e) {
+        characterList.add(e);
     }
 
     public void addBomb(Bomb e) {
-        _bombs.add(e);
+        bombList.add(e);
     }
 
     public void addMessage(Text e) {
-        _messages.add(e);
+        textList.add(e);
     }
 
     /*
@@ -348,20 +318,20 @@ public class Board implements Rendering {
     |--------------------------------------------------------------------------
      */
     protected void renderEntities(Screen screen) {
-        for (int i = 0; i < _entities.length; i++) {
-            _entities[i].render(screen);
+        for (int i = 0; i < entityList.length; i++) {
+            entityList[i].render(screen);
         }
     }
 
-    protected void renderMobs(Screen screen) {
-        Iterator<Character> itr = _mobs.iterator();
+    protected void renderCharacter(Screen screen) {
+        Iterator<Character> itr = characterList.iterator();
 
         while(itr.hasNext())
             itr.next().render(screen);
     }
 
     protected void renderBombs(Screen screen) {
-        Iterator<Bomb> itr = _bombs.iterator();
+        Iterator<Bomb> itr = bombList.iterator();
 
         while(itr.hasNext())
             itr.next().render(screen);
@@ -369,107 +339,106 @@ public class Board implements Rendering {
 
     public void renderMessages(Graphics g) {
         Text m;
-        for (int i = 0; i < _messages.size(); i++) {
-            m = _messages.get(i);
-
-            g.setFont(new Font("Arial", Font.PLAIN, m.getSize()));
+        for (int i = 0; i < textList.size(); i++) {
+            m = textList.get(i);
             g.setColor(m.getColor());
+            g.setFont(new Font("Arial", Font.PLAIN, m.getSize()));
             g.drawString(m.getMessage(), (int)m.getX() - Screen.xOffset  * GameLoop.SCALE, (int)m.getY());
         }
     }
 
     protected void updateEntities() {
-        if( _game.isPaused() ) return;
-        for (int i = 0; i < _entities.length; i++) {
-            _entities[i].update();
+        if( name.isPaused() ) return;
+        for (int i = 0; i < entityList.length; i++) {
+            entityList[i].update();
         }
     }
 
-    protected void updateMobs() {
-        if( _game.isPaused() ) return;
-        Iterator<Character> itr = _mobs.iterator();
+    protected void updateCharacter() {
+        if( name.isPaused() ) return;
+        Iterator<Character> itr = characterList.iterator();
 
-        while(itr.hasNext() && !_game.isPaused())
+        while(itr.hasNext() && !name.isPaused())
             itr.next().update();
     }
 
     protected void updateBombs() {
-        if( _game.isPaused() ) return;
-        Iterator<Bomb> itr = _bombs.iterator();
+        if( name.isPaused() ) return;
+        Iterator<Bomb> itr = bombList.iterator();
 
         while(itr.hasNext())
             itr.next().update();
     }
 
     protected void updateMessages() {
-        if( _game.isPaused() ) return;
+        if( name.isPaused() ) return;
         Text m;
         int left = 0;
-        for (int i = 0; i < _messages.size(); i++) {
-            m = _messages.get(i);
+        for (int i = 0; i < textList.size(); i++) {
+            m = textList.get(i);
             left = m.getDuration();
 
             if(left > 0)
                 m.setDuration(--left);
             else
-                _messages.remove(i);
+                textList.remove(i);
         }
     }
 
 
     public Keyboard getInput() {
-        return _input;
+        return input;
     }
 
     public Level getLevel() {
-        return _level;
+        return level;
     }
 
     public GameLoop getGame() {
-        return _game;
+        return name;
     }
 
     public int getShow() {
-        return _screenToShow;
+        return diffScreen;
     }
 
     public void setShow(int i) {
-        _screenToShow = i;
+        diffScreen = i;
     }
 
     public int getTime() {
-        return _time;
+        return timeLeft;
     }
 
     public int getLives() {
-        return _lives;
+        return lives;
     }
 
     public int subtractTime() {
-        if(_game.isPaused())
-            return this._time;
+        if(name.isPaused())
+            return this.timeLeft;
         else
-            return this._time--;
+            return this.timeLeft--;
     }
 
     public int getPoints() {
-        return _points;
+        return point;
     }
 
     public void addPoints(int points) {
-        this._points += points;
+        this.point += points;
     }
 
     public void addLives(int lives) {
-        this._lives += lives;
+        this.lives += lives;
     }
 
     public int getWidth() {
-        return _level.getWidth();
+        return level.getWidth();
     }
 
     public int getHeight() {
-        return _level.getHeight();
+        return level.getHeight();
     }
 
 }
